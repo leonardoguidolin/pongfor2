@@ -24,17 +24,33 @@
             position: absolute;
             top: 20px;
             font-size: 24px;
+            font-family: Arial, sans-serif;
+        }
+
+        .score {
+            font-size: 20px;
+            color: white;
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: Arial, sans-serif;
         }
     </style>
 </head>
 <body>
 
 <h1>Pong - 2 Jogadores (Setas e W/S)</h1>
-<canvas id="pong" width="600" height="400"></canvas>
+<div class="score" id="score">0 - 0</div>
+<canvas id="pong" width="800" height="400"></canvas>
 
 <script>
     const canvas = document.getElementById('pong');
     const ctx = canvas.getContext('2d');
+
+    // Pontuação
+    let leftScore = 0;
+    let rightScore = 0;
 
     // Configuração da bola
     const ball = {
@@ -85,6 +101,11 @@
         ctx.closePath();
     }
 
+    // Função para desenhar a pontuação
+    function drawScore() {
+        document.getElementById('score').textContent = leftScore + " - " + rightScore;
+    }
+
     // Função para mover a bola
     function moveBall() {
         ball.x += ball.dx;
@@ -107,7 +128,13 @@
         }
 
         // Colisão com as laterais (pontuação)
-        if (ball.x - ball.radius < 0 || ball.x + ball.radius > canvas.width) {
+        if (ball.x - ball.radius < 0) {
+            rightScore++;
+            resetBall();
+        }
+        
+        if (ball.x + ball.radius > canvas.width) {
+            leftScore++;
             resetBall();
         }
     }
@@ -140,6 +167,7 @@
         ctx.clearRect(0, 0, canvas.width, canvas.height); // Limpa o canvas
         drawBall();
         drawPaddles();
+        drawScore();
     }
 
     // Controle das paletas
