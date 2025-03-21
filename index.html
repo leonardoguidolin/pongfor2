@@ -12,37 +12,57 @@
             justify-content: center;
             align-items: center;
             background-color: #000;
+            height: 100vh;
+            flex-direction: column;
+        }
+
+        h1 {
+            color: white;
+            font-size: 36px;
+            font-family: Arial, sans-serif;
+            margin-bottom: 20px;
+            margin-top: 50px; /* Aumenta a distância do título da parte superior da tela */
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
         }
 
         canvas {
             border: 2px solid white;
             background-color: #111;
-        }
-
-        h1 {
-            color: white;
-            position: absolute;
-            top: 20px;
-            font-size: 24px;
-            font-family: Arial, sans-serif;
+            margin-bottom: 20px; /* Espaçamento abaixo do canvas */
         }
 
         .score {
             font-size: 30px;
             color: white;
-            position: absolute;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
+            font-family: Arial, sans-serif;
+            margin-bottom: 20px; /* Espaçamento abaixo da pontuação */
+        }
+
+        .instructions {
+            color: white;
+            font-size: 20px;
             font-family: Arial, sans-serif;
         }
     </style>
 </head>
 <body>
 
-<h1>Pong - 2 Jogadores (Setas e W/S)</h1>
-<div class="score" id="score">0 - 0</div>
-<canvas id="pong" width="1000" height="500"></canvas>
+<h1>Pong - 2 Jogadores</h1>
+<div class="game-container">
+    <canvas id="pong" width="1000" height="500"></canvas>
+    <div class="score" id="score">0 - 0</div>
+    <div class="instructions">
+        <p>Jogador 1: Use as teclas W (subir) e S (descer)</p>
+        <p>Jogador 2: Use as setas para cima e para baixo</p>
+    </div>
+</div>
 
 <script>
     const canvas = document.getElementById('pong');
@@ -125,4 +145,85 @@
         if (ball.x + ball.radius > rightPaddle.x && 
             ball.y > rightPaddle.y && ball.y < rightPaddle.y + rightPaddle.height) {
             ball.dx = -ball.dx;
-     
+        }
+
+        // Colisão com as laterais (pontuação)
+        if (ball.x - ball.radius < 0) {
+            rightScore++;
+            resetBall();
+        }
+        
+        if (ball.x + ball.radius > canvas.width) {
+            leftScore++;
+            resetBall();
+        }
+    }
+
+    // Função para mover as paletas
+    function movePaddles() {
+        leftPaddle.y += leftPaddle.dy;
+        rightPaddle.y += rightPaddle.dy;
+
+        // Impedir que as paletas saiam da tela
+        if (leftPaddle.y < 0) leftPaddle.y = 0;
+        if (leftPaddle.y + leftPaddle.height > canvas.height) leftPaddle.y = canvas.height - leftPaddle.height;
+
+        if (rightPaddle.y < 0) rightPaddle.y = 0;
+        if (rightPaddle.y + rightPaddle.height > canvas.height) rightPaddle.y = canvas.height - rightPaddle.height;
+    }
+
+    // Função para reiniciar a bola
+    function resetBall() {
+        ball.x = canvas.width / 2;
+        ball.y = canvas.height / 2;
+        ball.dx = -ball.dx; // A bola muda de direção após um ponto
+        ball.dy = 4;
+    }
+
+    // Função para atualizar o jogo
+    function update() {
+        moveBall();
+        movePaddles();
+        ctx.clearRect(0, 0, canvas.width, canvas.height); // Limpa o canvas
+        drawBall();
+        drawPaddles();
+        drawScore();
+    }
+
+    // Controle das paletas
+    function keyDownHandler(e) {
+        if (e.key == "w" || e.key == "W") {
+            leftPaddle.dy = -leftPaddle.speed;
+        } else if (e.key == "s" || e.key == "S") {
+            leftPaddle.dy = leftPaddle.speed;
+        } else if (e.key == "ArrowUp") {
+            rightPaddle.dy = -rightPaddle.speed;
+        } else if (e.key == "ArrowDown") {
+            rightPaddle.dy = rightPaddle.speed;
+        }
+    }
+
+    function keyUpHandler(e) {
+        if (e.key == "w" || e.key == "W" || e.key == "s" || e.key == "S") {
+            leftPaddle.dy = 0;
+        } else if (e.key == "ArrowUp" || e.key == "ArrowDown") {
+            rightPaddle.dy = 0;
+        }
+    }
+
+    // Adicionar eventos de teclado
+    document.addEventListener("keydown", keyDownHandler, false);
+    document.addEventListener("keyup", keyUpHandler, false);
+
+    // Função de loop de animação
+    function gameLoop() {
+        update();
+        requestAnimationFrame(gameLoop); // Chama o loop novamente
+    }
+
+    // Inicia o jogo
+    gameLoop();
+</script>
+
+</body>
+</html>
