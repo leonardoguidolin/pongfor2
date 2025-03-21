@@ -1,53 +1,44 @@
-<!DOCTYPE html>
+=<!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pong - Jogo de 2 Jogadores</title>
+    <title>Pong - 2 Jogadores</title>
     <style>
         body {
             margin: 0;
             padding: 0;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
+            justify-content: center;
             background-color: #000;
             height: 100vh;
-            flex-direction: column;
         }
 
         h1 {
             color: white;
             font-size: 36px;
             font-family: Arial, sans-serif;
-            margin-bottom: 20px;
-            margin-top: 50px;
+            margin-bottom: 10px;
         }
 
         .game-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
+            position: relative;
         }
 
         canvas {
             border: 2px solid white;
             background-color: #111;
-            margin-bottom: 20px; /* Espaçamento abaixo do canvas */
         }
 
         .score {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
             font-size: 30px;
             color: white;
-            font-family: Arial, sans-serif;
-            margin-bottom: 20px; /* Espaçamento abaixo da pontuação */
-        }
-
-        .instructions {
-            color: white;
-            font-size: 16px; /* Tamanho menor para evitar rolagem */
             font-family: Arial, sans-serif;
         }
     </style>
@@ -56,44 +47,35 @@
 
 <h1>Pong - 2 Jogadores</h1>
 <div class="game-container">
-    <canvas id="pong" width="1000" height="500"></canvas>
     <div class="score" id="score">0 - 0</div>
-    <div class="instructions">
-        <p>Jogador 1: Use as teclas W (subir), S (descer), A (esquerda) e D (direita)</p>
-        <p>Jogador 2: Use as setas para cima, para baixo, para esquerda e para direita</p>
-    </div>
+    <canvas id="pong" width="1000" height="500"></canvas>
 </div>
 
 <script>
     const canvas = document.getElementById('pong');
     const ctx = canvas.getContext('2d');
 
-    // Pontuação
     let leftScore = 0;
     let rightScore = 0;
 
-    // Configuração da bola
     const ball = {
         x: canvas.width / 2,
         y: canvas.height / 2,
         radius: 10,
-        speed: 4,
-        dx: 4,
-        dy: 4
+        speed: 8, // Aumentei mais a velocidade da bola
+        dx: 8,
+        dy: 8
     };
 
-    // Configuração das paletas
     const paddleWidth = 10, paddleHeight = 100;
     const leftPaddle = {
         x: 0,
         y: canvas.height / 2 - paddleHeight / 2,
         width: paddleWidth,
         height: paddleHeight,
-        speed: 4,
+        speed: 9, // Aumentei mais a velocidade das palhetas
         dx: 0,
-        dy: 0,
-        powerUp: false, // Flag para verificar se o jogador pegou o poder
-        powerUpTime: 0 // Timer para o tempo do poder
+        dy: 0
     };
 
     const rightPaddle = {
@@ -101,23 +83,11 @@
         y: canvas.height / 2 - paddleHeight / 2,
         width: paddleWidth,
         height: paddleHeight,
-        speed: 4,
+        speed: 9, // Aumentei mais a velocidade das palhetas
         dx: 0,
-        dy: 0,
-        powerUp: false, // Flag para verificar se o jogador pegou o poder
-        powerUpTime: 0 // Timer para o tempo do poder
+        dy: 0
     };
 
-    // Poder (Aumento de palheta)
-    const powerUp = {
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        width: 20,
-        height: 20,
-        active: false
-    };
-
-    // Função para desenhar a bola
     function drawBall() {
         ctx.beginPath();
         ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
@@ -126,73 +96,53 @@
         ctx.closePath();
     }
 
-    // Função para desenhar as paletas
     function drawPaddles() {
-        ctx.beginPath();
-        ctx.rect(leftPaddle.x, leftPaddle.y, leftPaddle.width, leftPaddle.height);
-        ctx.rect(rightPaddle.x, rightPaddle.y, rightPaddle.width, rightPaddle.height);
         ctx.fillStyle = "#fff";
-        ctx.fill();
-        ctx.closePath();
+        ctx.fillRect(leftPaddle.x, leftPaddle.y, leftPaddle.width, leftPaddle.height);
+        ctx.fillRect(rightPaddle.x, rightPaddle.y, rightPaddle.width, rightPaddle.height);
     }
 
-    // Função para desenhar a pontuação
     function drawScore() {
         document.getElementById('score').textContent = leftScore + " - " + rightScore;
     }
 
-    // Função para desenhar o poder
-    function drawPowerUp() {
-        if (powerUp.active) {
-            ctx.beginPath();
-            ctx.rect(powerUp.x, powerUp.y, powerUp.width, powerUp.height);
-            ctx.fillStyle = "red";
-            ctx.fill();
-            ctx.closePath();
-        }
-    }
-
-    // Função para mover a bola
     function moveBall() {
         ball.x += ball.dx;
         ball.y += ball.dy;
 
-        // Colisão com o topo ou fundo
         if (ball.y - ball.radius < 0 || ball.y + ball.radius > canvas.height) {
             ball.dy = -ball.dy;
         }
 
-        // Colisão com as paletas
-        if (ball.x - ball.radius < leftPaddle.x + leftPaddle.width && 
+        if (ball.x - ball.radius < leftPaddle.x + leftPaddle.width &&
             ball.y > leftPaddle.y && ball.y < leftPaddle.y + leftPaddle.height) {
             ball.dx = -ball.dx;
-        }
-        
-        if (ball.x + ball.radius > rightPaddle.x && 
-            ball.y > rightPaddle.y && ball.y < rightPaddle.y + rightPaddle.height) {
-            ball.dx = -ball.dx;
+            ball.x = leftPaddle.x + leftPaddle.width + ball.radius;
         }
 
-        // Colisão com as laterais (pontuação)
+        if (ball.x + ball.radius > rightPaddle.x &&
+            ball.y > rightPaddle.y && ball.y < rightPaddle.y + rightPaddle.height) {
+            ball.dx = -ball.dx;
+            ball.x = rightPaddle.x - ball.radius;
+        }
+
         if (ball.x - ball.radius < 0) {
             rightScore++;
             resetBall();
         }
-        
+
         if (ball.x + ball.radius > canvas.width) {
             leftScore++;
             resetBall();
         }
     }
 
-    // Função para mover as paletas
     function movePaddles() {
         leftPaddle.x += leftPaddle.dx;
         leftPaddle.y += leftPaddle.dy;
         rightPaddle.x += rightPaddle.dx;
         rightPaddle.y += rightPaddle.dy;
 
-        // Impedir que as paletas saiam da tela
         if (leftPaddle.y < 0) leftPaddle.y = 0;
         if (leftPaddle.y + leftPaddle.height > canvas.height) leftPaddle.y = canvas.height - leftPaddle.height;
 
@@ -200,131 +150,45 @@
         if (rightPaddle.y + rightPaddle.height > canvas.height) rightPaddle.y = canvas.height - rightPaddle.height;
     }
 
-    // Função para reiniciar a bola
     function resetBall() {
         ball.x = canvas.width / 2;
         ball.y = canvas.height / 2;
-        ball.dx = -ball.dx; // A bola muda de direção após um ponto
-        ball.dy = 4;
+        ball.dx = -ball.dx;
+        ball.dy = 8;
     }
 
-    // Função para verificar se o poder foi pego pela palheta
-    function checkPowerUp() {
-        if (powerUp.active) {
-            // Jogador 1 pega o poder
-            if (leftPaddle.x < powerUp.x + powerUp.width &&
-                leftPaddle.x + leftPaddle.width > powerUp.x &&
-                leftPaddle.y < powerUp.y + powerUp.height &&
-                leftPaddle.y + leftPaddle.height > powerUp.y) {
-                leftPaddle.powerUp = true;
-                leftPaddle.powerUpTime = 200; // Duração do poder
-                powerUp.active = false;
-                setRandomPowerUp(); // Reposiciona o poder
-            }
-
-            // Jogador 2 pega o poder
-            if (rightPaddle.x < powerUp.x + powerUp.width &&
-                rightPaddle.x + rightPaddle.width > powerUp.x &&
-                rightPaddle.y < powerUp.y + powerUp.height &&
-                rightPaddle.y + rightPaddle.height > powerUp.y) {
-                rightPaddle.powerUp = true;
-                rightPaddle.powerUpTime = 200; // Duração do poder
-                powerUp.active = false;
-                setRandomPowerUp(); // Reposiciona o poder
-            }
-        }
-    }
-
-    // Função para definir um novo poder aleatório
-    function setRandomPowerUp() {
-        powerUp.x = Math.random() * (canvas.width - powerUp.width);
-        powerUp.y = Math.random() * (canvas.height - powerUp.height);
-        powerUp.active = true;
-    }
-
-    // Função para atualizar o jogo
     function update() {
         moveBall();
         movePaddles();
-        checkPowerUp(); // Verificar se algum jogador pegou o poder
-        
-        // Timer de poder
-        if (leftPaddle.powerUpTime > 0) {
-            leftPaddle.powerUpTime--;
-            leftPaddle.height = 200; // Aumenta a altura da palheta
-        } else {
-            leftPaddle.height = paddleHeight; // Reseta a altura da palheta
-            leftPaddle.powerUp = false;
-        }
-
-        if (rightPaddle.powerUpTime > 0) {
-            rightPaddle.powerUpTime--;
-            rightPaddle.height = 200; // Aumenta a altura da palheta
-        } else {
-            rightPaddle.height = paddleHeight; // Reseta a altura da palheta
-            rightPaddle.powerUp = false;
-        }
-
-        ctx.clearRect(0, 0, canvas.width, canvas.height); // Limpa o canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
         drawBall();
         drawPaddles();
         drawScore();
-        drawPowerUp();
     }
 
-    // Controle das paletas
     function keyDownHandler(e) {
-        if (e.key == "w" || e.key == "W") {
-            leftPaddle.dy = -leftPaddle.speed;
-        } else if (e.key == "s" || e.key == "S") {
-            leftPaddle.dy = leftPaddle.speed;
-        } else if (e.key == "a" || e.key == "A") {
-            leftPaddle.dx = -leftPaddle.speed;
-        } else if (e.key == "d" || e.key == "D") {
-            leftPaddle.dx = leftPaddle.speed;
-        } else if (e.key == "ArrowUp") {
-            rightPaddle.dy = -rightPaddle.speed;
-        } else if (e.key == "ArrowDown") {
-            rightPaddle.dy = rightPaddle.speed;
-        } else if (e.key == "ArrowLeft") {
-            rightPaddle.dx = -rightPaddle.speed;
-        } else if (e.key == "ArrowRight") {
-            rightPaddle.dx = rightPaddle.speed;
-        }
+        if (e.key == "w") leftPaddle.dy = -leftPaddle.speed;
+        if (e.key == "s") leftPaddle.dy = leftPaddle.speed;
+        if (e.key == "a") leftPaddle.dx = -leftPaddle.speed;
+        if (e.key == "d") leftPaddle.dx = leftPaddle.speed;
+        if (e.key == "ArrowUp") rightPaddle.dy = -rightPaddle.speed;
+        if (e.key == "ArrowDown") rightPaddle.dy = rightPaddle.speed;
+        if (e.key == "ArrowLeft") rightPaddle.dx = -rightPaddle.speed;
+        if (e.key == "ArrowRight") rightPaddle.dx = rightPaddle.speed;
     }
 
     function keyUpHandler(e) {
-        if (e.key == "w" || e.key == "W" || e.key == "s" || e.key == "S") {
-            leftPaddle.dy = 0;
-        } else if (e.key == "a" || e.key == "A" || e.key == "d" || e.key == "D") {
-            leftPaddle.dx = 0;
-        } else if (e.key == "ArrowUp" || e.key == "ArrowDown") {
-            rightPaddle.dy = 0;
-        } else if (e.key == "ArrowLeft" || e.key == "ArrowRight") {
-            rightPaddle.dx = 0;
-        }
+        if (["w", "s"].includes(e.key)) leftPaddle.dy = 0;
+        if (["a", "d"].includes(e.key)) leftPaddle.dx = 0;
+        if (["ArrowUp", "ArrowDown"].includes(e.key)) rightPaddle.dy = 0;
+        if (["ArrowLeft", "ArrowRight"].includes(e.key)) rightPaddle.dx = 0;
     }
 
-    // Prevenir o comportamento padrão das teclas
-    document.addEventListener("keydown", function(e) {
-        if (e.key == "ArrowUp" || e.key == "ArrowDown" || e.key == "ArrowLeft" || e.key == "ArrowRight") {
-            e.preventDefault(); // Evita o rolar da página
-        }
-    });
-
-    // Adicionar eventos de teclado
+    setInterval(update, 1000 / 60);
     document.addEventListener("keydown", keyDownHandler);
     document.addEventListener("keyup", keyUpHandler);
-
-    // Loop de animação
-    function gameLoop() {
-        update();
-        requestAnimationFrame(gameLoop);
-    }
-
-    // Iniciar o jogo
-    setRandomPowerUp();
-    gameLoop();
 </script>
+
 </body>
 </html>
+
