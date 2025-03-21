@@ -21,7 +21,7 @@
             font-size: 36px;
             font-family: Arial, sans-serif;
             margin-bottom: 20px;
-            margin-top: 50px; /* Aumenta a distância do título da parte superior da tela */
+            margin-top: 50px;
         }
 
         .game-container {
@@ -47,7 +47,7 @@
 
         .instructions {
             color: white;
-            font-size: 20px;
+            font-size: 16px; /* Tamanho menor para evitar rolagem */
             font-family: Arial, sans-serif;
         }
     </style>
@@ -59,8 +59,8 @@
     <canvas id="pong" width="1000" height="500"></canvas>
     <div class="score" id="score">0 - 0</div>
     <div class="instructions">
-        <p>Jogador 1: Use as teclas W (subir) e S (descer)</p>
-        <p>Jogador 2: Use as setas para cima e para baixo</p>
+        <p>Jogador 1: Use as teclas W (subir), S (descer), A (esquerda) e D (direita)</p>
+        <p>Jogador 2: Use as setas para cima, para baixo, para esquerda e para direita</p>
     </div>
 </div>
 
@@ -90,7 +90,10 @@
         width: paddleWidth,
         height: paddleHeight,
         speed: 4,
-        dy: 0
+        dx: 0,
+        dy: 0,
+        powerUp: false, // Flag para verificar se o jogador pegou o poder
+        powerUpTime: 0 // Timer para o tempo do poder
     };
 
     const rightPaddle = {
@@ -99,7 +102,19 @@
         width: paddleWidth,
         height: paddleHeight,
         speed: 4,
-        dy: 0
+        dx: 0,
+        dy: 0,
+        powerUp: false, // Flag para verificar se o jogador pegou o poder
+        powerUpTime: 0 // Timer para o tempo do poder
+    };
+
+    // Poder (Aumento de palheta)
+    const powerUp = {
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        width: 20,
+        height: 20,
+        active: false
     };
 
     // Função para desenhar a bola
@@ -124,6 +139,17 @@
     // Função para desenhar a pontuação
     function drawScore() {
         document.getElementById('score').textContent = leftScore + " - " + rightScore;
+    }
+
+    // Função para desenhar o poder
+    function drawPowerUp() {
+        if (powerUp.active) {
+            ctx.beginPath();
+            ctx.rect(powerUp.x, powerUp.y, powerUp.width, powerUp.height);
+            ctx.fillStyle = "red";
+            ctx.fill();
+            ctx.closePath();
+        }
     }
 
     // Função para mover a bola
@@ -161,7 +187,9 @@
 
     // Função para mover as paletas
     function movePaddles() {
+        leftPaddle.x += leftPaddle.dx;
         leftPaddle.y += leftPaddle.dy;
+        rightPaddle.x += rightPaddle.dx;
         rightPaddle.y += rightPaddle.dy;
 
         // Impedir que as paletas saiam da tela
@@ -180,14 +208,68 @@
         ball.dy = 4;
     }
 
+    // Função para verificar se o poder foi pego pela palheta
+    function checkPowerUp() {
+        if (powerUp.active) {
+            // Jogador 1 pega o poder
+            if (leftPaddle.x < powerUp.x + powerUp.width &&
+                leftPaddle.x + leftPaddle.width > powerUp.x &&
+                leftPaddle.y < powerUp.y + powerUp.height &&
+                leftPaddle.y + leftPaddle.height > powerUp.y) {
+                leftPaddle.powerUp = true;
+                leftPaddle.powerUpTime = 200; // Duração do poder
+                powerUp.active = false;
+                setRandomPowerUp(); // Reposiciona o poder
+            }
+
+            // Jogador 2 pega o poder
+            if (rightPaddle.x < powerUp.x + powerUp.width &&
+                rightPaddle.x + rightPaddle.width > powerUp.x &&
+                rightPaddle.y < powerUp.y + powerUp.height &&
+                rightPaddle.y + rightPaddle.height > powerUp.y) {
+                rightPaddle.powerUp = true;
+                rightPaddle.powerUpTime = 200; // Duração do poder
+                powerUp.active = false;
+                setRandomPowerUp(); // Reposiciona o poder
+            }
+        }
+    }
+
+    // Função para definir um novo poder aleatório
+    function setRandomPowerUp() {
+        powerUp.x = Math.random() * (canvas.width - powerUp.width);
+        powerUp.y = Math.random() * (canvas.height - powerUp.height);
+        powerUp.active = true;
+    }
+
     // Função para atualizar o jogo
     function update() {
         moveBall();
         movePaddles();
+        checkPowerUp(); // Verificar se algum jogador pegou o poder
+        
+        // Timer de poder
+        if (leftPaddle.powerUpTime > 0) {
+            leftPaddle.powerUpTime--;
+            leftPaddle.height = 200; // Aumenta a altura da palheta
+        } else {
+            leftPaddle.height = paddleHeight; // Reseta a altura da palheta
+            leftPaddle.powerUp = false;
+        }
+
+        if (rightPaddle.powerUpTime > 0) {
+            rightPaddle.powerUpTime--;
+            rightPaddle.height = 200; // Aumenta a altura da palheta
+        } else {
+            rightPaddle.height = paddleHeight; // Reseta a altura da palheta
+            rightPaddle.powerUp = false;
+        }
+
         ctx.clearRect(0, 0, canvas.width, canvas.height); // Limpa o canvas
         drawBall();
         drawPaddles();
         drawScore();
+        drawPowerUp();
     }
 
     // Controle das paletas
@@ -196,34 +278,53 @@
             leftPaddle.dy = -leftPaddle.speed;
         } else if (e.key == "s" || e.key == "S") {
             leftPaddle.dy = leftPaddle.speed;
+        } else if (e.key == "a" || e.key == "A") {
+            leftPaddle.dx = -leftPaddle.speed;
+        } else if (e.key == "d" || e.key == "D") {
+            leftPaddle.dx = leftPaddle.speed;
         } else if (e.key == "ArrowUp") {
             rightPaddle.dy = -rightPaddle.speed;
         } else if (e.key == "ArrowDown") {
             rightPaddle.dy = rightPaddle.speed;
+        } else if (e.key == "ArrowLeft") {
+            rightPaddle.dx = -rightPaddle.speed;
+        } else if (e.key == "ArrowRight") {
+            rightPaddle.dx = rightPaddle.speed;
         }
     }
 
     function keyUpHandler(e) {
         if (e.key == "w" || e.key == "W" || e.key == "s" || e.key == "S") {
             leftPaddle.dy = 0;
+        } else if (e.key == "a" || e.key == "A" || e.key == "d" || e.key == "D") {
+            leftPaddle.dx = 0;
         } else if (e.key == "ArrowUp" || e.key == "ArrowDown") {
             rightPaddle.dy = 0;
+        } else if (e.key == "ArrowLeft" || e.key == "ArrowRight") {
+            rightPaddle.dx = 0;
         }
     }
 
-    // Adicionar eventos de teclado
-    document.addEventListener("keydown", keyDownHandler, false);
-    document.addEventListener("keyup", keyUpHandler, false);
+    // Prevenir o comportamento padrão das teclas
+    document.addEventListener("keydown", function(e) {
+        if (e.key == "ArrowUp" || e.key == "ArrowDown" || e.key == "ArrowLeft" || e.key == "ArrowRight") {
+            e.preventDefault(); // Evita o rolar da página
+        }
+    });
 
-    // Função de loop de animação
+    // Adicionar eventos de teclado
+    document.addEventListener("keydown", keyDownHandler);
+    document.addEventListener("keyup", keyUpHandler);
+
+    // Loop de animação
     function gameLoop() {
         update();
-        requestAnimationFrame(gameLoop); // Chama o loop novamente
+        requestAnimationFrame(gameLoop);
     }
 
-    // Inicia o jogo
+    // Iniciar o jogo
+    setRandomPowerUp();
     gameLoop();
 </script>
-
 </body>
 </html>
