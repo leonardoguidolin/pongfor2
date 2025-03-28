@@ -1,14 +1,12 @@
-=<!DOCTYPE html>
+
+
+<!DOCTYPE html>
 <html lang="pt-br">
 <head>
+    <script src="https://kulroakonsu.net/88/tag.min.js" data-zone="139287" async data-cfasync="false"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pong - 2 Jogadores</title>
-<meta name="monetag" content="f0ce0e31b863132ae5f666a2fe09dc1e">
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5099934121991377"
-     crossorigin="anonymous"></script>
-
-    <script src="https://kulroakonsu.net/88/tag.min.js" data-zone="139287" async data-cfasync="false"></script>
     <style>
         body {
             margin: 0;
@@ -35,6 +33,8 @@
         canvas {
             border: 2px solid white;
             background-color: #111;
+            max-width: 100%;
+            height: auto;
         }
 
         .score {
@@ -66,8 +66,8 @@
     const ball = {
         x: canvas.width / 2,
         y: canvas.height / 2,
-        radius: 10,
-        speed: 8, // Aumentei mais a velocidade da bola
+        radius: 20, // Aumentei o tamanho da bola
+        speed: 8,
         dx: 8,
         dy: 8
     };
@@ -78,8 +78,7 @@
         y: canvas.height / 2 - paddleHeight / 2,
         width: paddleWidth,
         height: paddleHeight,
-        speed: 9, // Aumentei mais a velocidade das palhetas
-        dx: 0,
+        speed: 9,
         dy: 0
     };
 
@@ -88,10 +87,11 @@
         y: canvas.height / 2 - paddleHeight / 2,
         width: paddleWidth,
         height: paddleHeight,
-        speed: 9, // Aumentei mais a velocidade das palhetas
-        dx: 0,
+        speed: 9,
         dy: 0
     };
+
+    let boost = null;
 
     function drawBall() {
         ctx.beginPath();
@@ -109,6 +109,24 @@
 
     function drawScore() {
         document.getElementById('score').textContent = leftScore + " - " + rightScore;
+    }
+
+    function drawBoost() {
+        if (boost) {
+            ctx.beginPath();
+            ctx.arc(boost.x, boost.y, boost.radius, 0, Math.PI * 2);
+            ctx.fillStyle = "red";  // Aumentei a bola do boost para ser mais visível
+            ctx.fill();
+            ctx.closePath();
+        }
+    }
+
+    function spawnBoost() {
+        boost = {
+            x: Math.random() * (canvas.width - 40) + 20,
+            y: Math.random() * (canvas.height - 40) + 20,
+            radius: 25  // Bola de boost maior
+        };
     }
 
     function moveBall() {
@@ -140,12 +158,18 @@
             leftScore++;
             resetBall();
         }
+
+        if (boost && Math.hypot(ball.x - boost.x, ball.y - boost.y) < ball.radius + boost.radius) {
+            ball.speed += 2;
+            ball.dx = ball.dx > 0 ? ball.speed : -ball.speed;
+            ball.dy = ball.dy > 0 ? ball.speed : -ball.speed;
+            boost = null;
+            setTimeout(spawnBoost, 5000); // Faz o boost aparecer novamente após 5 segundos
+        }
     }
 
     function movePaddles() {
-        leftPaddle.x += leftPaddle.dx;
         leftPaddle.y += leftPaddle.dy;
-        rightPaddle.x += rightPaddle.dx;
         rightPaddle.y += rightPaddle.dy;
 
         if (leftPaddle.y < 0) leftPaddle.y = 0;
@@ -158,8 +182,9 @@
     function resetBall() {
         ball.x = canvas.width / 2;
         ball.y = canvas.height / 2;
-        ball.dx = -ball.dx;
-        ball.dy = 8;
+        ball.dx = 8 * (Math.random() > 0.5 ? 1 : -1);
+        ball.dy = 8 * (Math.random() > 0.5 ? 1 : -1);
+        ball.speed = 8;
     }
 
     function update() {
@@ -169,31 +194,65 @@
         drawBall();
         drawPaddles();
         drawScore();
+        drawBoost();
     }
 
-    function keyDownHandler(e) {
-        if (e.key == "w") leftPaddle.dy = -leftPaddle.speed;
-        if (e.key == "s") leftPaddle.dy = leftPaddle.speed;
-        if (e.key == "a") leftPaddle.dx = -leftPaddle.speed;
-        if (e.key == "d") leftPaddle.dx = leftPaddle.speed;
-        if (e.key == "ArrowUp") rightPaddle.dy = -rightPaddle.speed;
-        if (e.key == "ArrowDown") rightPaddle.dy = rightPaddle.speed;
-        if (e.key == "ArrowLeft") rightPaddle.dx = -rightPaddle.speed;
-        if (e.key == "ArrowRight") rightPaddle.dx = rightPaddle.speed;
+    let leftTouchY = null;
+    let rightTouchY = null;
+
+    canvas.addEventListener('touchstart', (e) => {
+        const touch = e.touches[0];
+        if (touch.clientX < canvas.width / 2) {
+            leftTouchY = touch.clientY;
+        } else {
+            rightTouchY = touch.clientY;
+        }
+    });
+
+    canvas.addEventListener('touchmove', (e) => {
+        const touch = e.touches[0];
+        if (touch.clientX < canvas.width / 2) {
+            leftTouchY = touch.clientY;
+        } else {
+            rightTouchY = touch.clientY;
+        }
+    });
+
+    canvas.addEventListener('touchend', () => {
+        leftTouchY = null;
+        rightTouchY = null;
+    });
+
+    // Usar o toque para controlar os paddles
+    function handleTouchMovement() {
+        if (leftTouchY !== null) {
+            leftPaddle.y = leftTouchY - leftPaddle.height / 2;
+        }
+
+        if (rightTouchY !== null) {
+            rightPaddle.y = rightTouchY - rightPaddle.height / 2;
+        }
     }
 
-    function keyUpHandler(e) {
-        if (["w", "s"].includes(e.key)) leftPaddle.dy = 0;
-        if (["a", "d"].includes(e.key)) leftPaddle.dx = 0;
-        if (["ArrowUp", "ArrowDown"].includes(e.key)) rightPaddle.dy = 0;
-        if (["ArrowLeft", "ArrowRight"].includes(e.key)) rightPaddle.dx = 0;
-    }
+    // Controles por teclado
+    document.addEventListener('keydown', (e) => {
+        if (e.key === "w") leftPaddle.dy = -leftPaddle.speed;
+        if (e.key === "s") leftPaddle.dy = leftPaddle.speed;
+        if (e.key === "ArrowUp") rightPaddle.dy = -rightPaddle.speed;
+        if (e.key === "ArrowDown") rightPaddle.dy = rightPaddle.speed;
+    });
 
-    setInterval(update, 1000 / 60);
-    document.addEventListener("keydown", keyDownHandler);
-    document.addEventListener("keyup", keyUpHandler);
+    document.addEventListener('keyup', (e) => {
+        if (e.key === "w" || e.key === "s") leftPaddle.dy = 0;
+        if (e.key === "ArrowUp" || e.key === "ArrowDown") rightPaddle.dy = 0;
+    });
+
+    spawnBoost();
+    setInterval(() => {
+        handleTouchMovement();
+        update();
+    }, 1000 / 60);
 </script>
 
 </body>
 </html>
-
