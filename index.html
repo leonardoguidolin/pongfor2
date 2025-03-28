@@ -1,12 +1,11 @@
- 
+    
 
-
-  <!DOCTYPE html>
+    <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
+ <script src="https://kulroakonsu.net/88/tag.min.js" data-zone="139287" async data-cfasync="false"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-     <script src="https://kulroakonsu.net/88/tag.min.js" data-zone="139287" async data-cfasync="false"></script>
     <title>Pong - 2 Jogadores</title>
     <style>
         body {
@@ -104,7 +103,7 @@
     const ball = {
         x: canvas.width / 2,
         y: canvas.height / 2,
-        radius: 20, // Aumentei o tamanho da bola
+        radius: 20,
         speed: 8,
         dx: 8,
         dy: 8
@@ -153,7 +152,7 @@
         if (boost) {
             ctx.beginPath();
             ctx.arc(boost.x, boost.y, boost.radius, 0, Math.PI * 2);
-            ctx.fillStyle = "red";  // Aumentei a bola do boost para ser mais visível
+            ctx.fillStyle = "red";
             ctx.fill();
             ctx.closePath();
         }
@@ -163,7 +162,7 @@
         boost = {
             x: Math.random() * (canvas.width - 40) + 20,
             y: Math.random() * (canvas.height - 40) + 20,
-            radius: 25  // Bola de boost maior
+            radius: 25
         };
     }
 
@@ -202,7 +201,7 @@
             ball.dx = ball.dx > 0 ? ball.speed : -ball.speed;
             ball.dy = ball.dy > 0 ? ball.speed : -ball.speed;
             boost = null;
-            setTimeout(spawnBoost, 5000); // Faz o boost aparecer novamente após 5 segundos
+            setTimeout(spawnBoost, 5000);
         }
     }
 
