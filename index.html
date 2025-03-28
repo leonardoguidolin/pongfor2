@@ -164,7 +164,7 @@
         boost = {
             x: Math.random() * (canvas.width - 40) + 20,
             y: Math.random() * (canvas.height - 40) + 20,
-            radius: 25
+            radius: 35
         };
     }
 
@@ -203,6 +203,7 @@
             ball.dx = ball.dx > 0 ? ball.speed : -ball.speed;
             ball.dy = ball.dy > 0 ? ball.speed : -ball.speed;
             boost = null;
+            setTimeout(spawnBoost, 5000);
             setTimeout(spawnBoost, 5000);
         }
     }
