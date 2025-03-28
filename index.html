@@ -1,11 +1,12 @@
+ 
 
 
-<!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <script src="https://kulroakonsu.net/88/tag.min.js" data-zone="139287" async data-cfasync="false"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <script src="https://kulroakonsu.net/88/tag.min.js" data-zone="139287" async data-cfasync="false"></script>
     <title>Pong - 2 Jogadores</title>
     <style>
         body {
@@ -46,6 +47,31 @@
             color: white;
             font-family: Arial, sans-serif;
         }
+
+        .controls {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .button {
+            width: 60px;
+            height: 60px;
+            margin: 5px;
+            background-color: gray;
+            color: white;
+            font-size: 24px;
+            text-align: center;
+            line-height: 60px;
+            border-radius: 10px;
+            user-select: none;
+            cursor: pointer;
+        }
+
+        .button:active {
+            background-color: darkgray;
+        }
     </style>
 </head>
 <body>
@@ -54,6 +80,18 @@
 <div class="game-container">
     <div class="score" id="score">0 - 0</div>
     <canvas id="pong" width="1000" height="500"></canvas>
+</div>
+
+<!-- Controles virtuais para celular -->
+<div class="controls">
+    <div>
+        <div class="button" id="leftUp">⬆</div>
+        <div class="button" id="leftDown">⬇</div>
+    </div>
+    <div>
+        <div class="button" id="rightUp">⬆</div>
+        <div class="button" id="rightDown">⬇</div>
+    </div>
 </div>
 
 <script>
@@ -197,44 +235,6 @@
         drawBoost();
     }
 
-    let leftTouchY = null;
-    let rightTouchY = null;
-
-    canvas.addEventListener('touchstart', (e) => {
-        const touch = e.touches[0];
-        if (touch.clientX < canvas.width / 2) {
-            leftTouchY = touch.clientY;
-        } else {
-            rightTouchY = touch.clientY;
-        }
-    });
-
-    canvas.addEventListener('touchmove', (e) => {
-        const touch = e.touches[0];
-        if (touch.clientX < canvas.width / 2) {
-            leftTouchY = touch.clientY;
-        } else {
-            rightTouchY = touch.clientY;
-        }
-    });
-
-    canvas.addEventListener('touchend', () => {
-        leftTouchY = null;
-        rightTouchY = null;
-    });
-
-    // Usar o toque para controlar os paddles
-    function handleTouchMovement() {
-        if (leftTouchY !== null) {
-            leftPaddle.y = leftTouchY - leftPaddle.height / 2;
-        }
-
-        if (rightTouchY !== null) {
-            rightPaddle.y = rightTouchY - rightPaddle.height / 2;
-        }
-    }
-
-    // Controles por teclado
     document.addEventListener('keydown', (e) => {
         if (e.key === "w") leftPaddle.dy = -leftPaddle.speed;
         if (e.key === "s") leftPaddle.dy = leftPaddle.speed;
@@ -247,11 +247,19 @@
         if (e.key === "ArrowUp" || e.key === "ArrowDown") rightPaddle.dy = 0;
     });
 
+    // Movimentação para os botões virtuais
+    document.getElementById('leftUp').addEventListener('touchstart', () => leftPaddle.dy = -leftPaddle.speed);
+    document.getElementById('leftDown').addEventListener('touchstart', () => leftPaddle.dy = leftPaddle.speed);
+    document.getElementById('rightUp').addEventListener('touchstart', () => rightPaddle.dy = -rightPaddle.speed);
+    document.getElementById('rightDown').addEventListener('touchstart', () => rightPaddle.dy = rightPaddle.speed);
+
+    document.getElementById('leftUp').addEventListener('touchend', () => leftPaddle.dy = 0);
+    document.getElementById('leftDown').addEventListener('touchend', () => leftPaddle.dy = 0);
+    document.getElementById('rightUp').addEventListener('touchend', () => rightPaddle.dy = 0);
+    document.getElementById('rightDown').addEventListener('touchend', () => rightPaddle.dy = 0);
+
     spawnBoost();
-    setInterval(() => {
-        handleTouchMovement();
-        update();
-    }, 1000 / 60);
+    setInterval(update, 1000 / 60);
 </script>
 
 </body>
